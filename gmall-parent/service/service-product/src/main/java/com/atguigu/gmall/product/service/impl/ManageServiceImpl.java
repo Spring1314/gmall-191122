@@ -467,7 +467,46 @@ public class ManageServiceImpl implements ManageService {
     @Override
     @GmallCache(prefix = "getSkuValueIdsMap")
     public Map getSkuValueIdsMap(Long spuId) {
-
+        /*String cashKey = RedisConst.SKUKEY_PREFIX + spuId + RedisConst.SKUKEY_SUFFIX;
+        String lockKey = RedisConst.SKUKEY_PREFIX + spuId + RedisConst.SKULOCK_SUFFIX;
+        //先去redis中获取
+        Map resultMap = (Map)redisTemplate.opsForValue().get(cashKey);
+        //如果缓存中存在，直接返回
+        if (resultMap != null){
+            return resultMap;
+        } else {
+            //缓存中不存在，去数据库中进行查询
+            //解决缓存击穿问题
+            RLock lock = redissonClient.getLock(lockKey);
+            try {
+                boolean isLock = lock.tryLock(1, 2, TimeUnit.SECONDS);
+                if (isLock){
+                    //是第一个请求，拿到了锁
+                    List<Map> skuValueIdsMap = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
+                    for (Map map : skuValueIdsMap) {
+                        resultMap.put(map.get("value_ids"), map.get("sku_id"));
+                    }
+                    //解决缓存穿透问题
+                    if (resultMap == null){
+                        resultMap = new HashMap();
+                        redisTemplate.opsForValue().set(cashKey,resultMap,5,TimeUnit.MINUTES);
+                    } else {
+                        //解决缓存雪崩
+                        Random random = new Random();
+                        int time = random.nextInt(300);
+                        redisTemplate.opsForValue().set(cashKey,resultMap,RedisConst.SKUKEY_TIMEOUT + time,TimeUnit.SECONDS);
+                    }
+                } else {
+                    //其他请求，去redis中获取
+                    return (Map)redisTemplate.opsForValue().get(cashKey);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        }
+       return resultMap;*/
         Map resultMap = new HashMap();
         List<Map> skuValueIdsMap = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
         skuValueIdsMap.forEach(map -> {
