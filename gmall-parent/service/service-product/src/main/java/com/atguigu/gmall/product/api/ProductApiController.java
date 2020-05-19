@@ -58,4 +58,11 @@ public class ProductApiController {
     public Map getSkuValueIdsMap(@PathVariable("spuId") Long spuId){
         return manageService.getSkuValueIdsMap(spuId);
     }
+
+    //获取全部分类信息
+    @GetMapping("/getBaseCategoryList")
+    public List<Map> getBaseCategoryList(){
+
+        return manageService.getBaseCategoryList();
+    }
 }

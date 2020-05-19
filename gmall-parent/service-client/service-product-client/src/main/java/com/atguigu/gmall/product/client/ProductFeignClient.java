@@ -7,7 +7,6 @@ import com.atguigu.gmall.product.client.impl.ProductDegradeFeignClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,4 +41,8 @@ public interface ProductFeignClient {
     //5 根据skuId获得商品属性组合
     @GetMapping("/api/product/inner/getSkuValueIdsMap/{spuId}")
     public Map getSkuValueIdsMap(@PathVariable("spuId") Long spuId);
+
+    //获取全部分类信息
+    @GetMapping("/api/product/getBaseCategoryList")
+    public List<Map> getBaseCategoryList();
 }

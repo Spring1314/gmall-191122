@@ -16,7 +16,11 @@ spring:
           uri: lb://service-product
           predicates:
             - Path=/*/product/** # 路径匹配
-        - id: web-all
+        - id: web-item
           uri: lb://web-all
           predicates:
             - Host=item.gmall.com
+        - id: web-index
+          uri: lb://web-all
+          predicates:
+            - Host=www.gmall.com

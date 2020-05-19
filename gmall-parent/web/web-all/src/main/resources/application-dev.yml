@@ -1,6 +1,5 @@
 server:
   port: 8304
-
 spring:
   thymeleaf:
     #模板的模式，支持 HTML, XML TEXT JAVASCRIPT

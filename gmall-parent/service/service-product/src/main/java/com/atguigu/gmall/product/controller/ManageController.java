@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Administrator
@@ -186,5 +187,7 @@ public class ManageController {
         manageService.cancelSale(skuId);
         return Result.ok();
     }
+
+
 }
 
