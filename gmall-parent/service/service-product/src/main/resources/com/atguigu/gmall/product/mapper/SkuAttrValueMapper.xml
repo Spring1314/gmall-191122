@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.atguigu.gmall.product.mapper.SkuAttrValueMapper">
+
+    <resultMap id="getAttrListMap" type="com.atguigu.gmall.model.product.SkuAttrValue">
+        <id column="id" property="id"/>
+        <association property="baseAttrInfo" javaType="com.atguigu.gmall.model.product.BaseAttrInfo">
+            <id column="attr_id" property="id"></id>
+        </association>
+        <association property="baseAttrValue" javaType="com.atguigu.gmall.model.product.BaseAttrValue">
+            <id column="vid" property="id"></id>
+        </association>
+    </resultMap>
+
+    <!--//根据skuId获得平台属性集合
+    List<SkuAttrValue> getAttrList(Long skuId);-->
+    <select id="getAttrList" resultMap="getAttrListMap">
+        SELECT
+            sav.id,
+            bai.id attr_id,
+            bai.attr_name,
+            bav.id vid,
+            bav.value_name
+        FROM
+            sku_attr_value sav
+            INNER JOIN base_attr_value bav ON sav.value_id = bav.id
+            INNER JOIN base_attr_info bai ON bai.id = bav.attr_id
+        WHERE
+            sav.sku_id = #{skuId}
+    </select>
+
+</mapper>

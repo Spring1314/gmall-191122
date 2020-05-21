@@ -8,7 +8,6 @@ import com.atguigu.gmall.product.service.ManageService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import jodd.time.TimeUtil;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -508,12 +507,13 @@ public class ManageServiceImpl implements ManageService {
             }
         }
        return resultMap;*/
-        Map resultMap = new HashMap();
+
+        Map result = new HashMap();
         List<Map> skuValueIdsMap = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
-        skuValueIdsMap.forEach(map -> {
-            resultMap.put(map.get("value_ids"),map.get("sku_id"));
-        });
-        return resultMap;
+        for (Map map : skuValueIdsMap) {
+            result.put(map.get("value_ids"), map.get("sku_id"));
+        }
+        return result;
     }
 
     //获取全部分类信息
@@ -570,6 +570,16 @@ public class ManageServiceImpl implements ManageService {
         return result;
     }
 
+    //根据品牌id商品品牌相关属性
+    @Override
+    public BaseTrademark getBaseTrademark(Long tmId) {
+        return baseTrademarkMapper.selectById(tmId);
+    }
 
+    //根据skuId获得平台属性集合
+    @Override
+    public List<SkuAttrValue> getAttrList(Long skuId) {
+        return skuAttrValueMapper.getAttrList(skuId);
+    }
 
 }

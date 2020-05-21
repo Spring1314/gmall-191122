@@ -69,5 +69,9 @@ public interface ManageService {
     Map getSkuValueIdsMap(Long spuId);
 
     List<Map> getBaseCategoryList();
+
+    BaseTrademark getBaseTrademark(Long tmId);
+
+    List<SkuAttrValue> getAttrList(Long skuId);
 }
 
