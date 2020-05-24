@@ -15,6 +15,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -63,6 +64,7 @@ public class ListServiceImpl implements ListService {
         SkuInfo skuInfo = productFeignClient.getSkuInfo(skuId);
         goods.setId(skuInfo.getId());
         goods.setDefaultImg(skuInfo.getSkuDefaultImg());
+        goods.setPrice(skuInfo.getPrice().doubleValue());
         goods.setTitle(skuInfo.getSkuName());
         //2.商品品牌相关属性
         BaseTrademark baseTrademark = productFeignClient.getBaseTrademark(skuInfo.getTmId());
@@ -150,7 +152,7 @@ public class ListServiceImpl implements ListService {
         SearchHit[] hits1 = hits.getHits();
         List<Goods> goodsList = Arrays.stream(hits1).map(h -> {
             String sourceAsString = h.getSourceAsString();
-            //将字符串转换成对象
+            //将json串转换成对象
             Goods goods = JSONObject.parseObject(sourceAsString, Goods.class);
             HighlightField title = h.getHighlightFields().get("title");
             if (title != null){
@@ -208,7 +210,8 @@ public class ListServiceImpl implements ListService {
         //1.关键字  必须不为空
         String keyword = searchParam.getKeyword();
         if(!StringUtils.isEmpty(keyword)){
-            boolQueryBuilder.must(QueryBuilders.matchQuery("title",keyword));
+            //查询交集 ：华为手机->分词：华为  手机
+            boolQueryBuilder.must(QueryBuilders.matchQuery("title",keyword).operator(Operator.AND));
         }else{
             //匹配所有
         }
