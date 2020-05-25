@@ -3,7 +3,6 @@ package com.atguigu.gmall.gateway.filter;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.result.ResultCodeEnum;
-import com.atguigu.gmall.gateway.constant.RedisConst;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -24,24 +23,18 @@ import reactor.core.publisher.Mono;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
-import java.net.URI;
 import java.net.URLEncoder;
 
 /**
  * @author Administrator
- * @create 2020-05-24 14:28
- * 1.添加redis依赖
- * 2.配置redis
- * 3.添加redis配置文件
+ * @create 2020-05-25 21:11
  */
 @Component
-//@Order(0)
-public class LoginGlobalFilter implements GlobalFilter,Order{
+public class LoginFilter implements GlobalFilter, Order {
 
+    private AntPathMatcher antPathMatcher = new AntPathMatcher();
     @Autowired
     private RedisTemplate redisTemplate;
-
-    private AntPathMatcher antPathMatcher =new AntPathMatcher();
     @Value("${auth.url}")
     private String[] authUrl;
 
@@ -56,26 +49,26 @@ public class LoginGlobalFilter implements GlobalFilter,Order{
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         String path = request.getURI().getPath();
-        //1.浏览器无权访问/inner的资源
+        //1.浏览器无权访问/inner内部资源
         if (antPathMatcher.match("/inner/**",path)){
-            return out(response,ResultCodeEnum.PERMISSION);
+            out(response,ResultCodeEnum.PERMISSION);
         }
-        //获取用户ID
+        //获得用户id
         String userId = getUserId(request);
-        //2.浏览器访问/auth的路径，要判断用户是否登录
-        if (antPathMatcher.match("/auth/**",path) && StringUtils.isEmpty(userId)){
-            return out(response,ResultCodeEnum.LOGIN_AUTH);
+        //2.访问/auth,需要登录状态
+        if(antPathMatcher.match("/auth/**",path) && StringUtils.isEmpty(userId)){
+            out(response,ResultCodeEnum.LOGIN_AUTH);
         }
 
-        //3.判断是否是刷新页面 ->重定向到登录页面
+        //3.判断是否刷新页面
         for (String url : authUrl) {
-            if (path.contains(url) && StringUtils.isEmpty(userId)){
+            if (path.contains(url)){
                 //重定向
                 response.setStatusCode(HttpStatus.SEE_OTHER);
                 String rawSchemeSpecificPart = request.getURI().getRawSchemeSpecificPart();
                 try {
-                    response.getHeaders().set(HttpHeaders.LOCATION,"http://passport.gmall.com/login.html?originUrl="
-                            + URLEncoder.encode(rawSchemeSpecificPart,"utf-8"));
+                    response.getHeaders().set(HttpHeaders.LOCATION,"http://passport.gmall.com/login.html?originUrl="+
+                            URLEncoder.encode(rawSchemeSpecificPart,"utf-8"));
                     //响应给浏览器
                     response.setComplete();
                 } catch (UnsupportedEncodingException e) {
@@ -83,26 +76,21 @@ public class LoginGlobalFilter implements GlobalFilter,Order{
                 }
             }
         }
-
-        //将userId传给后来页面，如购物车页面，从而判是谁的购物车
-        //mutate()创建一个新的请求 并设置用户ID
-        if (!StringUtils.isEmpty(userId)){
-            request.mutate().header("userId",userId);
-        }
-
-        //获取临时用户id
+        //获得临时用户id
         String userTempId = getUserTempId(request);
-        if(!StringUtils.isEmpty(userTempId)){
+        if (!StringUtils.isEmpty(userTempId)){
             request.mutate().header("userTempId",userTempId);
         }
-        //放行
+
+        //将userId传给后续页面
+        if (!StringUtils.isEmpty(userId))
+        request.mutate().header("userId",userId);
         return chain.filter(exchange);
     }
-
-    //获取临时用户id
+    //获得临时用户id
     private String getUserTempId(ServerHttpRequest request) {
         String userTempId = request.getHeaders().getFirst("userTempId");
-        if (userTempId == null){
+        if (userTempId==null){
             HttpCookie httpCookie = request.getCookies().getFirst("userTempId");
             if (httpCookie != null){
                 userTempId = httpCookie.getValue();
@@ -111,38 +99,37 @@ public class LoginGlobalFilter implements GlobalFilter,Order{
         return userTempId;
     }
 
-    //获取用户ID
+    //获得用户id
     private String getUserId(ServerHttpRequest request) {
-        //获得token -> Header 或者 Cookie
+        //header cookie
         String token = request.getHeaders().getFirst("token");
-        if (token == null){
-            //Header中没有，去Cookie中查询
+        if (token==null){
             HttpCookie token1 = request.getCookies().getFirst("token");
             if (token1 != null){
                 token = token1.getValue();
             }
         }
 
-        //通过token去缓存中获得userId
-        if (!StringUtils.isEmpty(token)){
-            String userId = (String) redisTemplate.opsForValue().get(token);
+        if (token != null){
+            String userId = (String) redisTemplate.opsForValue().get("token");
             return userId;
         }
+
         return null;
     }
 
-    private Mono<Void> out(ServerHttpResponse response,ResultCodeEnum resultCodeEnum) {
-        //写入响应体中
+    private void out(ServerHttpResponse response,ResultCodeEnum resultCodeEnum) {
+        //写到响应体中
         Result<Object> build = Result.build(null, resultCodeEnum);
-        //将build对象转换成二进制流
+        //将对象转换成字符串
         String result = JSONObject.toJSONString(build);
+        //将result转换成二进制流
         DataBuffer wrap = response.bufferFactory().wrap(result.getBytes());
-        //中文乱码问题
-        response.getHeaders().set(HttpHeaders.CONTENT_TYPE,"application/json;charset=utf-8");
-        return response.writeWith(Mono.just(wrap));
+        response.getHeaders().set(HttpHeaders.CONTENT_TYPE,"utf-8");
+        response.writeWith(Mono.just(wrap));
     }
 
-    //设置过滤器的执行顺序
+    //设置过滤器的优先级
     @Override
     public int value() {
         return 0;

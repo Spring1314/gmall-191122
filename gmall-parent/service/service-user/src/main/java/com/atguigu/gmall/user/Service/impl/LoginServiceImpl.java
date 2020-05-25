@@ -16,8 +16,10 @@ import org.springframework.util.DigestUtils;
 public class LoginServiceImpl implements LoginService {
     @Autowired
     private UserInfoMapper userInfoMapper;
+
     @Override
     public UserInfo login(UserInfo userInfo) {
+        //认证
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         String digest = DigestUtils.md5DigestAsHex(userInfo.getPasswd().getBytes());
         wrapper.eq("login_name",userInfo.getLoginName()).eq("passwd",digest);

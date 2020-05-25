@@ -303,10 +303,10 @@ public class ManageServiceImpl implements ManageService {
                     } else {
                         List<SkuImage> skuImages = skuImageMapper.selectList(new QueryWrapper<SkuImage>().eq("sku_id", skuInfo.getId()));
                         skuInfo.setSkuImageList(skuImages);
-                        //存放到数据库中一份
                         //缓存雪崩
                         Random random = new Random();
                         int time = random.nextInt(300);
+                        //存放到缓存中一份
                         redisTemplate.opsForValue().set(cashKey,skuInfo,RedisConst.SKUKEY_TIMEOUT + time,TimeUnit.SECONDS);
                     }
                 } else {
@@ -563,9 +563,57 @@ public class ManageServiceImpl implements ManageService {
                 map2.put("categoryChild",resultMap3);
                 resultMap2.add(map2);
             }
-            //1.4获得子集合
+            //1.4获得一级分类子集合
             map1.put("categoryChild",resultMap2);
             result.add(map1);
+        }
+        return result;
+    }
+
+    public List<Map> getList(){
+        List<Map> result = new ArrayList<>();
+        //获得一二三级分类集合
+        List<BaseCategoryView> baseCategoryViews = baseCategoryViewMapper.selectList(null);
+        //获得一级分类集合
+        Map<Long, List<BaseCategoryView>> category1IdMap
+                = baseCategoryViews.stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory1Id));
+        Set<Map.Entry<Long, List<BaseCategoryView>>> category1IdEntry = category1IdMap.entrySet();
+        int index = 0;
+        for (Map.Entry<Long, List<BaseCategoryView>> longListEntry : category1IdEntry) {
+            Map map = new HashMap();
+            //设置一级分类的id
+            map.put("categoryId",longListEntry.getKey());
+            //设置一级分类的角标
+            map.put("index", ++index);
+            //设置一级分类的名称
+            map.put("categoryName",longListEntry.getValue().get(0).getCategory1Name());
+            //设置一级分类的子集合,二级分类集合
+            Map<Long, List<BaseCategoryView>> category2IdMap
+                    = baseCategoryViews.stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory2Id));
+            Set<Map.Entry<Long, List<BaseCategoryView>>> category2IdEntry = category2IdMap.entrySet();
+            List resultMap2 = new ArrayList();
+            for (Map.Entry<Long, List<BaseCategoryView>> listEntry : category2IdEntry) {
+                Map map2 = new HashMap();
+                //二级分类id
+                map.put("categoryId",listEntry.getValue());
+                //二级分类名称
+                map.put("categoryName",listEntry.getValue().get(0).getCategory2Name());
+                //二级分类子集合
+                List resultMap3 = new ArrayList();
+                List<BaseCategoryView> categoryViewList = listEntry.getValue();
+                for (BaseCategoryView baseCategoryView : categoryViewList) {
+                    Map map3 = new HashMap();
+                    //三级分类id
+                    map.put("categoryId",baseCategoryView.getCategory3Id());
+                    //三级分类名称
+                    map.put("categoryName",baseCategoryView.getCategory3Name());
+                    resultMap3.add(map3);
+                }
+                map2.put("categoryChild",resultMap3);
+                resultMap2.add(map2);
+            }
+            map.put("categoryChild",resultMap2);
+            result.add(map);
         }
         return result;
     }

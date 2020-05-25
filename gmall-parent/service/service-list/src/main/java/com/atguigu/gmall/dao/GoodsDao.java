@@ -8,5 +8,6 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
  * @create 2020-05-20 11:43
  * 添加、修改、删除
  */
-public interface GoodsDao extends ElasticsearchRepository<Goods,Long> {
+public interface
+GoodsDao extends ElasticsearchRepository<Goods,Long> {
 }

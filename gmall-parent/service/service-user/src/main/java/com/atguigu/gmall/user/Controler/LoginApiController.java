@@ -4,6 +4,8 @@ import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.user.UserInfo;
 import com.atguigu.gmall.user.Service.LoginService;
+import com.netflix.ribbon.proxy.annotation.Http;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -32,17 +34,17 @@ public class LoginApiController {
     public Result login(@RequestBody UserInfo userInfo){
         UserInfo userInfo1 = loginService.login(userInfo);
         if (userInfo1 == null){
-            return Result.fail().message("用户名或密码不正确");
+            return Result.fail().message("用户名或密码不存在");
         } else {
-            //生成令牌
-            String token = UUID.randomUUID().toString().replace("-", "");
-            //将令牌保存到redis中
-            redisTemplate.opsForValue().set(RedisConst.USER_LOGIN_KEY_PREFIX + token,userInfo1.getId(),
-                                             RedisConst.USERKEY_TIMEOUT, TimeUnit.SECONDS);
-            Map map = new HashMap<>();
+            //生成token
+            String token = UUID.randomUUID().toString().replace("-","");
+            //保存到缓存
+            redisTemplate.opsForValue().set(RedisConst.USER_LOGIN_KEY_PREFIX + token,userInfo1.getId().toString(),
+                    RedisConst.USERKEY_TIMEOUT,TimeUnit.SECONDS);
             String nickName = userInfo1.getNickName();
-            map.put("token",token);
+            Map map = new HashMap();
             map.put("nickName",nickName);
+            map.put("token",token);
             return Result.ok(map);
         }
     }
@@ -51,7 +53,7 @@ public class LoginApiController {
     @GetMapping("/logout")
     public Result logout(HttpServletRequest request){
         String token = request.getHeader("token");
-        redisTemplate.delete(token);
+        redisTemplate.delete(RedisConst.USER_LOGIN_KEY_PREFIX + token);
         return Result.ok();
     }
 }

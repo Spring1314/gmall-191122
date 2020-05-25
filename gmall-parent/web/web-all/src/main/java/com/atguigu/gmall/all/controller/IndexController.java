@@ -19,6 +19,7 @@ import java.util.Map;
  * @author Administrator
  * @create 2020-05-19 17:02
  * 商品详情页面之商品分类渲染
+ * 静态化技术
  */
 @Controller
 public class IndexController {

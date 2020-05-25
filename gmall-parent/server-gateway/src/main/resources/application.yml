@@ -36,3 +36,12 @@ spring:
           uri: lb://web-all
           predicates:
             - Host=passport.gmall.com
+        - id: web-cart
+          uri: lb://web-all
+          predicates:
+            - Host=cart.gmall.com
+  redis:
+    host: 192.168.200.128
+    port: 6379
+auth:
+  url: trade.html,myOrder.html,pay.html
