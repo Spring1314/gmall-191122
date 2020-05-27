@@ -125,7 +125,8 @@ public class LoginGlobalFilter implements GlobalFilter,Order{
 
         //通过token去缓存中获得userId
         if (!StringUtils.isEmpty(token)){
-            String userId = (String) redisTemplate.opsForValue().get(token);
+            String cacheKey = RedisConst.USER_LOGIN_KEY_PREFIX + token;
+            String userId = (String) redisTemplate.opsForValue().get(cacheKey);
             return userId;
         }
         return null;

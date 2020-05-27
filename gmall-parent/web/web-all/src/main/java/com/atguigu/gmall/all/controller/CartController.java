@@ -5,10 +5,8 @@ import com.atguigu.gmall.model.cart.CartInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Administrator
@@ -19,11 +17,18 @@ import javax.servlet.http.HttpServletRequest;
 public class CartController {
     @Autowired
     private CartFeignClient cartFeignClient;
-    @RequestMapping("addCart.html")
-    public String addCart(@RequestParam(name="user_id") Long userId,
-                          @RequestParam(name="sku_num") Integer skuNum, HttpServletRequest request, Model model){
-        CartInfo cartInfo = cartFeignClient.addCart(userId, skuNum, request);
+    //添加购物车页面
+    @GetMapping("/addCart.html")
+    public String addCart(Long skuId,Integer skuNum,Model model){
+        CartInfo cartInfo = cartFeignClient.addToCart(skuId, skuNum);
         model.addAttribute("cartInfo",cartInfo);
         return "cart/addCart";
     }
+
+    //去购物车结算页面
+    @GetMapping("/cart.html")
+    public String toCart(){
+        return "cart/index";
+    }
+
 }

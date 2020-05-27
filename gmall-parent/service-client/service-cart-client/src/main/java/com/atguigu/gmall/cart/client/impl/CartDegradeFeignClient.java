@@ -12,8 +12,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Component
 public class CartDegradeFeignClient implements CartFeignClient {
+
     @Override
-    public CartInfo addCart(Long skuId, Integer skuNum, HttpServletRequest request) {
+    public CartInfo addToCart(Long skuId, Integer skuNum) {
         return null;
     }
 }
