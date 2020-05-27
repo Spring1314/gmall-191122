@@ -5,6 +5,7 @@ import com.atguigu.gmall.model.cart.CartInfo;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author Administrator
@@ -17,4 +18,10 @@ public class CartDegradeFeignClient implements CartFeignClient {
     public CartInfo addToCart(Long skuId, Integer skuNum) {
         return null;
     }
+
+    @Override
+    public List<CartInfo> getCartCheckedList(Long userId) {
+        return null;
+    }
+
 }

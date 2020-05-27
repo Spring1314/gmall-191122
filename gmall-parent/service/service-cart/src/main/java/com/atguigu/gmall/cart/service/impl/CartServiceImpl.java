@@ -7,6 +7,7 @@ import com.atguigu.gmall.model.cart.CartInfo;
 import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.product.client.ProductFeignClient;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -113,7 +114,38 @@ public class CartServiceImpl implements CartService {
         //修改缓存
         String cacheKey = getCacheKey(userId);
         cartInfo = (CartInfo) redisTemplate.opsForHash().get(cacheKey, skuId.toString());
+        cartInfo.setIsChecked(isChecked);
         redisTemplate.opsForHash().put(cacheKey,skuId.toString(),cartInfo);
+
+    }
+
+    //获得选中的商品集合
+    @Override
+    public List<CartInfo> getCartCheckedList(Long userId) {
+        //先去缓存中查询
+        String cacheKey = getCacheKey(String.valueOf(userId));
+        List<CartInfo> cartInfoList = redisTemplate.opsForHash().values(cacheKey);
+        if (!CollectionUtils.isEmpty(cartInfoList)){
+            //缓存中存在，返回选中得商品集合
+            cartInfoList = cartInfoList.stream().filter(cartInfo -> {
+                if (cartInfo.getIsChecked().intValue() == 1){
+                    return true;
+                } else {
+                    return false;
+                }
+            }).collect(Collectors.toList());
+        } else {
+            //缓存中不存在，去数据库中查询
+            QueryWrapper<CartInfo> wrapper = new QueryWrapper<>();
+            wrapper.eq("user_id",userId).eq("is_checked",1);
+            cartInfoList = cartInfoMapper.selectList(wrapper);
+        }
+        //实时价格
+        cartInfoList.forEach(cartInfo -> {
+            BigDecimal skuPrice = productFeignClient.getSkuPrice(cartInfo.getSkuId());
+            cartInfo.setSkuPrice(skuPrice);
+        });
+        return cartInfoList;
     }
 
 

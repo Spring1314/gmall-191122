@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Administrator
@@ -62,4 +62,11 @@ public class CartApiController {
         cartService.checkCart(skuId,isChecked,userId);
         return Result.ok();
     }
+
+    //获得选中的商品集合
+    @GetMapping("/getCartCheckedList/{userId}")
+    public List<CartInfo> getCartCheckedList(@PathVariable("userId") Long userId){
+        return cartService.getCartCheckedList(userId);
+    }
+
 }
