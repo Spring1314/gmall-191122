@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.result.ResultCodeEnum;
 import com.atguigu.gmall.gateway.constant.RedisConst;
+import jdk.nashorn.internal.scripts.JS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -58,6 +59,14 @@ public class LoginGlobalFilter implements GlobalFilter,Order{
         String path = request.getURI().getPath();
         //1.浏览器无权访问/inner的资源
         if (antPathMatcher.match("/inner/**",path)){
+           /* //返回的结果写进响应体中
+            Result<Object> build = Result.build(null, ResultCodeEnum.PERMISSION);
+            //将build对象转成字符串
+            String result = JSONObject.toJSONString(build);
+            //解决中文乱码问题
+            response.getHeaders().set(HttpHeaders.CONTENT_TYPE,"application/json;charset=utf-8");
+            DataBuffer wrap = response.bufferFactory().wrap(result.getBytes());
+            response.writeWith(Mono.just(wrap));*/
             return out(response,ResultCodeEnum.PERMISSION);
         }
         //获取用户ID

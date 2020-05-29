@@ -30,7 +30,7 @@ public class OrderApiController {
     private OrderInfoService orderInfoService;
     @Value("${ware.url}")
     private String wareUrl;
-    //生成交易号
+    //1.生成交易号
     @GetMapping("/auth/tradeNo")
     public String tradeNo(HttpServletRequest request){
         String userId = AuthContextHolder.getUserId(request);
@@ -41,7 +41,7 @@ public class OrderApiController {
         return tradeNo;
     }
 
-    //提交订单 submitOrder(order, tradeNo) /auth/submitOrder?tradeNo=' + tradeNo,
+    //2.提交订单 submitOrder(order, tradeNo) /auth/submitOrder?tradeNo=' + tradeNo,
     @PostMapping("/auth/submitOrder")
     public Result submitOrder(@RequestBody OrderInfo orderInfo,String tradeNo,HttpServletRequest request){
         String userId = AuthContextHolder.getUserId(request);

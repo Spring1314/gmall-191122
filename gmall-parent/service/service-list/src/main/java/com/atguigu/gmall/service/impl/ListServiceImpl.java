@@ -29,8 +29,10 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -92,6 +94,7 @@ public class ListServiceImpl implements ListService {
         //5.时间
         goods.setCreateTime(new Date());
         goodsDao.save(goods);
+
     }
 
     //删除索引库  商品下架
@@ -120,8 +123,8 @@ public class ListServiceImpl implements ListService {
     public SearchResponseVo list(SearchParam searchParam) {
         //1.构建查询条件对象
         SearchRequest searchRequest = buildSearchRequest(searchParam);
-        //2.执行查询
         try {
+            //2.执行查询
             SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
             //3.解析查询结果
             SearchResponseVo responseVo = parseSearchResponse(searchResponse);
