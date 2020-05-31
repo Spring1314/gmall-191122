@@ -52,6 +52,10 @@ spring:
           uri: lb://web-all
           predicates:
             - Host=order.gmall.com
+        - id: web-payment
+          uri: lb://web-all
+          predicates:
+            - Host=payment.gmall.com
   redis:
     host: 192.168.200.128
     port: 6379

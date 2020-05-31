@@ -1,7 +1,9 @@
 package com.atguigu.gmall.product.service.impl;
 
 import com.atguigu.gmall.common.cache.GmallCache;
+import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.mapper.*;
 import com.atguigu.gmall.product.service.ManageService;
@@ -261,6 +263,9 @@ public class ManageServiceImpl implements ManageService {
         return skuInfoMapper.selectPage(skuInfoPage,null);
     }
 
+    @Autowired
+    private RabbitService rabbitService;
+
     //上架
     @Override
     public void onSale(Long skuId) {
@@ -268,6 +273,8 @@ public class ManageServiceImpl implements ManageService {
         skuInfo.setId(skuId);
         skuInfo.setIsSale(1);
         skuInfoMapper.updateById(skuInfo);
+        //添加商品到索引库
+        rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS,MqConst.ROUTING_GOODS_UPPER,skuId);
     }
 
     //下架
@@ -277,6 +284,8 @@ public class ManageServiceImpl implements ManageService {
         skuInfo.setId(skuId);
         skuInfo.setIsSale(0);
         skuInfoMapper.updateById(skuInfo);
+        //删除索引库中对应得商品
+        rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS,MqConst.ROUTING_GOODS_LOWER,skuId);
     }
 
     //1 根据skuId获取sku基本信息与图片信息

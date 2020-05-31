@@ -1,9 +1,12 @@
 package com.atguigu.gmall.order.service.impl;
 
+import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.common.util.HttpClient;
 import com.atguigu.gmall.common.util.HttpClientUtil;
 import com.atguigu.gmall.model.cart.CartInfo;
+import com.atguigu.gmall.model.enums.OrderStatus;
 import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.order.OrderDetail;
 import com.atguigu.gmall.model.order.OrderInfo;
@@ -38,6 +41,8 @@ public class OrderInfoServiceImpl implements OrderInfoService {
     private CartInfoMapper cartInfoMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private RabbitService rabbitService;
 
     //2.查询库存 http://localhost:9001
     @Override
@@ -54,7 +59,7 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         //总金额 total_amount
         orderInfo.sumTotalAmount();
         //订单状态 order_status
-        orderInfo.setOrderStatus(ProcessStatus.UNPAID.name());
+        orderInfo.setOrderStatus(OrderStatus.UNPAID.name());
         //订单交易编号 out_trade_no
         String outTradeNo = "ATGUIGU" + UUID.randomUUID().toString().replace("-","");
         orderInfo.setOutTradeNo(outTradeNo);
@@ -87,6 +92,35 @@ public class OrderInfoServiceImpl implements OrderInfoService {
             redisTemplate.delete(cacheKey);*/
 
         });
+        //5.超时未支付订单，自动取消订单
+        /*rabbitService.sendDelayedMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL,MqConst.ROUTING_ORDER_CANCEL,
+                orderInfo.getId(),MqConst.DELAY_TIME * 10000);*/
+        rabbitService.sendDelayedMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL,MqConst.ROUTING_ORDER_CANCEL,
+                orderInfo.getId(),10000);
         return orderInfo.getId();
+    }
+
+    //取消订单
+    @Override
+    public void cancelOrder(Long orderId) {
+        OrderInfo orderInfo = orderInfoMapper.selectById(orderId);
+        if (orderInfo.getOrderStatus().equals(ProcessStatus.UNPAID.name())){
+            System.out.println(orderId);
+            orderInfo.setOrderStatus(OrderStatus.CLOSED.name());
+            orderInfo.setProcessStatus(ProcessStatus.CLOSED.name());
+            orderInfoMapper.updateById(orderInfo);
+        }
+    }
+
+    //根据订单id获得订单信息
+    @Override
+    public OrderInfo getOrderInfo(Long orderId) {
+
+        QueryWrapper<OrderDetail> wrapper = new QueryWrapper<>();
+        wrapper.eq("order_id",orderId);
+        List<OrderDetail> orderDetails = orderDetailMapper.selectList(wrapper);
+        OrderInfo orderInfo = orderInfoMapper.selectById(orderId);
+        orderInfo.setOrderDetailList(orderDetails);
+        return orderInfo;
     }
 }

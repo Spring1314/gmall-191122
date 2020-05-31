@@ -3,6 +3,9 @@ package com.atguigu.gmall.common.entity;
 import lombok.Data;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 
+import java.io.Serializable;
+
+
 /**
  * @author Administrator
  * @create 2020-05-29 19:32

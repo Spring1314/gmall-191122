@@ -1,5 +1,6 @@
 package com.atguigu.gmall.mq.receiver;
 
+import com.atguigu.gmall.mq.config.MqConfig;
 import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -8,7 +9,8 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.util.Date;
+
 
 /**
  * @author Administrator
@@ -19,14 +21,14 @@ import java.io.IOException;
 public class MessageReceiver {
 
     @RabbitListener(bindings = {@QueueBinding(
-            value = @Queue(name = "queue1122",autoDelete = "false",durable = "true"),
-            exchange = @Exchange(name = "exchange1122"),
+            value = @Queue(value = "queue1122",autoDelete = "false",durable = "true"),
+            exchange = @Exchange(value = "exchange1122"),
             key = {"routingKey1122"}
     )})
     public void messageReceiver(String msg, Channel channel, Message message){
 
         try {
-            int i = 1 / 0;
+            //int i = 1 / 0;
             System.out.println(msg);
             //参数一：指定是哪一个消息  参数二：是否删除消息
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
@@ -52,5 +54,11 @@ public class MessageReceiver {
                 }
             }
         }
+    }
+
+    @RabbitListener(queues = MqConfig.queue_delay_1)
+    //延迟消息
+    public void delayedMessage(String msg){
+        System.out.println(msg + "/消息接收时间：" + new Date());
     }
 }

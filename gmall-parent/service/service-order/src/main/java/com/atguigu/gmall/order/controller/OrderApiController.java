@@ -1,6 +1,6 @@
 package com.atguigu.gmall.order.controller;
 
-import com.atguigu.gmall.common.constant.RedisConst;
+
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.util.AuthContextHolder;
 import com.atguigu.gmall.model.order.OrderDetail;
@@ -28,6 +28,7 @@ public class OrderApiController {
     private RedisTemplate redisTemplate;
     @Autowired
     private OrderInfoService orderInfoService;
+
     @Value("${ware.url}")
     private String wareUrl;
     //1.生成交易号
@@ -77,7 +78,12 @@ public class OrderApiController {
         Long orderId  = orderInfoService.saveOrder(orderInfo);
 
         //4.删除购物车及缓存中已选中的商品
-
         return Result.ok(orderId);
+    }
+
+    //根据订单id获得订单信息
+    @GetMapping("/auth/getOrderInfo/{orderId}")
+    public OrderInfo getOrderInfo(@PathVariable("orderId") Long orderId){
+        return orderInfoService.getOrderInfo(orderId);
     }
 }
