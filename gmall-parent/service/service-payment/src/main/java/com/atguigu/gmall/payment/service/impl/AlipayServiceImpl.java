@@ -74,6 +74,7 @@ public class AlipayServiceImpl implements AlipayService {
                 .eq("out_trade_no", outTradeNo));
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
         Map map = new HashMap();
+        //支付宝交易号，和商户订单号不能同时为空 选择其一
         map.put("out_trade_no",outTradeNo);
         //refund_amount 需要退款的金额
         map.put("refund_amount",paymentInfo.getTotalAmount());
