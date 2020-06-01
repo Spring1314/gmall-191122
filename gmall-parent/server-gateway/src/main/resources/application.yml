@@ -28,6 +28,10 @@ spring:
           uri: lb://service-order
           predicates:
             - Path=/*/order/**
+        - id: service-payment
+          uri: lb://service-payment
+          predicates:
+            - Path=/*/payment/**
         - id: web-item
           uri: lb://web-all
           predicates:

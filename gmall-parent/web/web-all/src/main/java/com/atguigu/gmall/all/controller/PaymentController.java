@@ -24,4 +24,10 @@ public class PaymentController {
         model.addAttribute("orderInfo",orderInfo);
         return "payment/pay";
     }
+
+    //跳转支付成功页面
+    @GetMapping("/pay/success.html")
+    public String toSuccess(){
+        return "payment/success";
+    }
 }

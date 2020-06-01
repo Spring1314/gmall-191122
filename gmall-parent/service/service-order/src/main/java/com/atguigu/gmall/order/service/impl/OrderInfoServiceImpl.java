@@ -93,10 +93,10 @@ public class OrderInfoServiceImpl implements OrderInfoService {
 
         });
         //5.超时未支付订单，自动取消订单
-        /*rabbitService.sendDelayedMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL,MqConst.ROUTING_ORDER_CANCEL,
-                orderInfo.getId(),MqConst.DELAY_TIME * 10000);*/
         rabbitService.sendDelayedMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL,MqConst.ROUTING_ORDER_CANCEL,
-                orderInfo.getId(),10000);
+                orderInfo.getId(),MqConst.DELAY_TIME * 10000);
+        /*rabbitService.sendDelayedMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL,MqConst.ROUTING_ORDER_CANCEL,
+                orderInfo.getId(),10000);*/
         return orderInfo.getId();
     }
 
