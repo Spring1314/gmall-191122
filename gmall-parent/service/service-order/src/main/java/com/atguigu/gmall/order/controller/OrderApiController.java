@@ -1,6 +1,7 @@
 package com.atguigu.gmall.order.controller;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.util.AuthContextHolder;
 import com.atguigu.gmall.model.order.OrderDetail;
@@ -13,8 +14,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Administrator
@@ -85,5 +89,18 @@ public class OrderApiController {
     @GetMapping("/auth/getOrderInfo/{orderId}")
     public OrderInfo getOrderInfo(@PathVariable("orderId") Long orderId){
         return orderInfoService.getOrderInfo(orderId);
+    }
+
+    //拆单接口说明
+    //由库存系统发起申请
+    //调用接口	http://order.gmall.com/orderSplit
+    @PostMapping("/orderSplit")
+    public List<Map> orderSplit(String orderId, String wareSkuMap){
+        //拆分订单
+        List<OrderInfo> orderInfoList = orderInfoService.orderSplit(orderId, wareSkuMap);
+        //组装返回值
+        return orderInfoList.stream().map(orderInfo -> {
+            return orderInfoService.initWareDate(orderInfo);
+        }).collect(Collectors.toList());
     }
 }

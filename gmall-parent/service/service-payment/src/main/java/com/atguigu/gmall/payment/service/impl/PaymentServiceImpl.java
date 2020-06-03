@@ -1,6 +1,8 @@
 package com.atguigu.gmall.payment.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall.common.constant.MqConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.model.enums.OrderStatus;
 import com.atguigu.gmall.model.enums.PaymentStatus;
 import com.atguigu.gmall.model.enums.PaymentType;
@@ -27,6 +29,8 @@ public class PaymentServiceImpl implements PaymentService {
     private PaymentInfoMapper paymentInfoMapper;
     @Autowired
     private OrderInfoMapper orderInfoMapper;
+    @Autowired
+    private RabbitService rabbitService;
 
     //保存支付信息到payment_info
     @Override
@@ -68,7 +72,12 @@ public class PaymentServiceImpl implements PaymentService {
             paymentInfo.setCallbackContent(JSONObject.toJSONString(paramsMap));
             //payment_status
             paymentInfo.setPaymentStatus(OrderStatus.PAID.name());
+            //1.修改支付表状态
             paymentInfoMapper.updateById(paymentInfo);
+
+            //2.修改订单表的支付状态：未支付-》已支付 和 进度状态：未支付-》已支付
+            rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_PAYMENT_PAY,
+                    MqConst.ROUTING_PAYMENT_PAY,paymentInfo.getOrderId());
         }
     }
 }
